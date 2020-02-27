@@ -1,29 +1,57 @@
 package mathclass.function;
 
-import mathclass.geometry.point.CartesianPoint;
-import mathclass.geometry.point.Point2D;
+import mathclass.pair.twoD.Point;
 
-public class LinearFunction extends PolynomialFunction implements Formula {
+public class LinearFunction extends PolynomialFunction {
 	
-	private double m;
-	private double b;
+	private double m, b;
 	
 	//---------------------------------------------------------------------------------//
 	//  Static Constructors                                                            //
 	//---------------------------------------------------------------------------------//
 	
 	/**
+	 * Creates a line parallel to another line that passes through a given {@link mathclass.geometry.point.Point2D Point}.
+	 * 
+	 * @param line The line which this line will be parallel to.
+	 * @param p The point which this parallel point will pass through.
+	 * @return A line which is parallel to a given line that passes through Point p.
+	 */
+	public static LinearFunction parallelThroughPoint(LinearFunction line, Point p) {
+		return new LinearFunction(p, line.getM());
+	}
+	
+	public static LinearFunction perpendicularThroughPoint(LinearFunction line, Point p) {
+		return new LinearFunction(p, -1/line.getM());
+	}
+	
+	//---------------------------------------------------------------------------------//
+	//  Constructors                                                                   //
+	//---------------------------------------------------------------------------------//
+	
+	/**
+	 * Creates a linear function with a given slope m and a y-intercept at (0,b), commonly known as slope-intercept form.
+	 * 
+	 * @param a	The coefficient of the x component.
+	 * @param b	The coefficient of the y component.
+	 * @param c	The constant.
+	 * @return A linear function (which is internally represented by slope-intercept) from the given standard form.
+	 */
+	
+	public LinearFunction(double m, double b) {
+		setM(m);
+		setB(b);
+	}
+	
+	/**
 	 * Creates a line given two {@link mathclass.geometry.point.Point2D Points}.
-	 * <br><br>
-	 * Given two <code>Points</code>, a and b, calculates the slope, then returns calculates the rest via {@link #fromPointSlope(Point2D, double)}
 	 * 
 	 * @param a A point which the line passes through.
 	 * @param b A second point which the line passes through.
 	 * @return A linear function that passes through point a and b
 	 */
-	public static LinearFunction fromTwoPoints(Point2D a, Point2D b) {
-		double slope = (b.getY()-a.getY())/(b.getX()-a.getX());
-		return fromPointSlope(a, slope);
+	public LinearFunction(Point a, Point b) {
+		this(a, (b.v2()-a.v2())/(b.v1()-a.v1()));
 	}
 	
 	/**
@@ -33,11 +61,8 @@ public class LinearFunction extends PolynomialFunction implements Formula {
 	 * @param slope The slope of the line which passes through Point p.
 	 * @return A linear function which passes through point p with a given slope.
 	 */
-	public static LinearFunction fromPointSlope(Point2D p, double slope) {
-		LinearFunction ret = new LinearFunction();
-		ret.setM(slope);
-		ret.setB(slope*-p.getX()+p.getY());
-		return ret;
+	public LinearFunction(Point p, double slope) {
+		this(slope, slope*-p.v1()+p.v2());
 	}
 	
 	/**
@@ -48,34 +73,8 @@ public class LinearFunction extends PolynomialFunction implements Formula {
 	 * @param c	The constant.
 	 * @return A linear function (which is internally represented by slope-intercept) from the given standard form.
 	 */
-	public static LinearFunction fromStandardForm(int a, int b, int c) {
-		return new LinearFunction(-a/b, c/b);
-	}
-	
-	/**
-	 * Creates a line parallel to another line that passes through a given {@link mathclass.geometry.point.Point2D Point}.
-	 * 
-	 * @param line The line which this line will be parallel to.
-	 * @param p The point which this parallel point will pass through.
-	 * @return A line which is parallel to a given line that passes through Point p.
-	 */
-	public static LinearFunction parallelThroughPoint(LinearFunction line, Point2D p) {
-		return fromPointSlope(p, line.getM());
-	}
-	
-	public static LinearFunction perpendicularThroughPoint(LinearFunction line, Point2D p) {
-		return fromPointSlope(p, -1/line.getM());
-	}
-	
-	//---------------------------------------------------------------------------------//
-	//  Constructors                                                                   //
-	//---------------------------------------------------------------------------------//
-	
-	private LinearFunction() {}
-	
-	public LinearFunction(double m, double b) {
-		setM(m);
-		setB(b);
+	public LinearFunction(int a, int b, int c) {
+		this(-a/b, c/b);
 	}
 	
 	//---------------------------------------------------------------------------------//
@@ -104,20 +103,52 @@ public class LinearFunction extends PolynomialFunction implements Formula {
 	//  Math                                                                           //
 	//---------------------------------------------------------------------------------//
 	
-	public double apply(double x) {
+	/**
+	 * Calculates y given x
+	 * 
+	 * @param x
+	 * @return y
+	 */
+	public double f(double x) {
 		return m*x+b;
 	}
 	
+	
+	/**
+	 * Calculates the input (x) from a given output (y)
+	 * 
+	 * @param y
+	 * @return x
+	 */
 	public double[] solve(double y) {
-		return new double[] {(y-b)/m};
+		if (m!=0) {
+			return new double[] {(y-b)/m};
+		} else {
+			return new double[] {};
+		}
 	}
 	
-	public Point2D yIntercept() {
-		return new CartesianPoint(0, apply(0));
+	/**
+	 * @return The y-intercept of the function (0,yIntercept())
+	 */
+	public Point yIntercept() {
+		return new Point(0, f(0));
 	}
 	
-	public Point2D xIntercept() {
-		return new CartesianPoint(solve(0)[0], 0);
+	/**
+	 * @return the x-intercepts of the function (xIntercept(),0)
+	 */
+	public Point[] xIntercepts() {
+		double[] roots = solve(0);
+		Point[] ret = new Point[roots.length];
+		for (int i = 0; i < roots.length; i++) {
+			ret[i] = new Point(roots[i], 0);
+		}
+		return ret;
+	}
+	
+	public LinearFunction derivative() {
+		return new LinearFunction(0, m);
 	}
 	
 	//---------------------------------------------------------------------------------//
